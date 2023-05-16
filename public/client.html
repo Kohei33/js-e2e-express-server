@@ -30,9 +30,22 @@
       <tr>
         <td align="right">Your Speech Resource region</td>
         <td>
-          <input id="resourceRegion" type="text" size="40" placeholder="Your resource region" value="eastus"
+          <!--<input id="resourceRegion" type="text" size="40" placeholder="Your resource region" value="eastus"
+            onblur="updateSrc()"> -->
+          <input id="resourceRegion" type="text" size="40" placeholder="Your resource region" value="japaneast"
             onblur="updateSrc()">
 
+        </td>
+      </tr>
+      <tr>
+        <td align="right">Select language</td>
+        <td>
+          <select id="language" onblur="updateSrc()">
+            <option value="ja-JP-KeitaNeural">日本語/男性</option>
+            <option value="ja-JP-NanamiNeural">日本語/女性</option>
+            <option value="en-US-GuyNeural">英語(米国)/男性</option>
+            <option value="en-US-JennyNeural">英語(米国)/女性</option>
+          </select>
         </td>
       </tr>
       <tr>
@@ -83,7 +96,9 @@
 
     // subscription key and region for speech services.
     var resourceKey = null;
-    var resourceRegion = "eastus";
+    //var resourceRegion = "eastus";
+    var resourceRegion = "japaneast";
+    var language = "en-US-JennyNeural";
     var authorizationToken;
     var SpeechSDK;
     var synthesizer;
@@ -104,12 +119,13 @@
       // input values
       resourceKey = document.getElementById('resourceKey').value.trim();
       resourceRegion = document.getElementById('resourceRegion').value.trim();
+      language = document.getElementById('language').value;
       phrase = document.getElementById('phraseDiv').value.trim();
 
       // server control - by file
       var serverAudioFileControl = document.getElementById('serverAudioFile');
       queryString += `%file=true`;
-      const fileQueryString = `file=true&region=${resourceRegion}&key=${resourceKey}&phrase=${phrase}`;
+      const fileQueryString = `file=true&region=${resourceRegion}&key=${resourceKey}&language=${language}&phrase=${phrase}`;
       serverAudioFileControl.src = `${serverSrc}?${fileQueryString}`;
       console.log(serverAudioFileControl.src)
       serverAudioFileControl.type = "audio/mpeg";
@@ -117,7 +133,7 @@
 
       // server control - by stream
       var serverAudioStreamControl = document.getElementById('serverAudioStream');
-      const streamQueryString = `region=${resourceRegion}&key=${resourceKey}&phrase=${phrase}`;
+      const streamQueryString = `region=${resourceRegion}&key=${resourceKey}&language=${language}&phrase=${phrase}`;
       serverAudioStreamControl.src = `${serverSrc}?${streamQueryString}`;
       console.log(serverAudioStreamControl.src)
       serverAudioStreamControl.type = "audio/mpeg";
@@ -138,6 +154,9 @@
 
       // authorization for Speech service
       var speechConfig = SpeechSDK.SpeechConfig.fromSubscription(resourceKey, resourceRegion);
+
+      // The language of the voice that speaks.
+      speechConfig.speechSynthesisVoiceName = language;
 
       // new Speech object
       synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig);
@@ -187,6 +206,7 @@
 
       resourceKey = document.getElementById('resourceKey').value;
       resourceRegion = document.getElementById('resourceRegion').value;
+      language = document.getElementById('language').value;
       phrase = document.getElementById('phraseDiv').value;
       if (!!window.SpeechSDK) {
         SpeechSDK = window.SpeechSDK;
