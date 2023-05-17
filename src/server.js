@@ -11,6 +11,11 @@ const create = async () => {
     const app = express();
     app.use(favicon(path.join(__dirname, '../public', 'favicon.ico')));
     
+    // Register ejs as .html
+    app.engine('.html', require('ejs').__express);
+    //app.set('views', path.join(__dirname, 'views'));
+    app.set('view engine', 'html');
+
     // Log request
     app.use(utils.appLogger);
 
@@ -19,9 +24,12 @@ const create = async () => {
     app.get('/text-to-speech', async (req, res, next) => {
         
         const { key, region, language, phrase, file } = req.query;
+
+        var errors = res.errors = [];
         
         if (!key || !region || !language || !phrase) {
-            return res.status(404).send('Invalid query string');
+            //return res.status(404).send('Invalid query string');
+            return errors[errors.length] = 'Invalid query string';
         }
 
         let fileName = null;
@@ -33,16 +41,15 @@ const create = async () => {
         
         try{
             const audioStream = await textToSpeech(key, region, language, phrase, fileName);
+            res.set({
+                'Content-Type': 'audio/mpeg',
+                'Transfer-Encoding': 'chunked'
+            });
+            audioStream.pipe(res);
+
         } catch (err) {
             return res.status(404).send('Invalid parameter');
         }
-        
-        res.set({
-            'Content-Type': 'audio/mpeg',
-            'Transfer-Encoding': 'chunked'
-        });
-        audioStream.pipe(res);
-        
     });
 
     // root route - serve static file
@@ -53,8 +60,8 @@ const create = async () => {
 
     // root route - serve static file
     app.get('/', (req, res) => {
-        return res.sendFile(path.join(__dirname, '../public/client.html'));
-
+        //return res.sendFile(path.join(__dirname, '../public/client.html'));
+        return res.render('../public/client.html');
     });
 
     // Catch errors
